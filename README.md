@@ -12,8 +12,22 @@ This repository contains Terraform code to:
 ## Architecture
 
 The solution implements the following data flow:
-```
-AWS IoT Core (MQTT) → Topic Rule → Kinesis Data Firehose → S3
+
+```mermaid
+graph LR
+    A["📡 AWS IoT Core<br/>(MQTT)"] -->|MQTT Messages| B["⚙️ Topic Rule<br/>(iot_kinesis_s3_alltopics)"]
+    B -->|SELECT * FROM<br/>$aws/rules/#| C["🔥 Kinesis Data<br/>Firehose<br/>(Delivery Stream)"]
+    C -->|Batch & Compress| D["💾 Amazon S3<br/>(Data Lake)"]
+
+    E["🔐 IAM Role<br/>(iot_topic_firehose_analytics_role)"]
+    E -->|Assumes| B
+    E -->|Permissions| C
+
+    style A fill:#FF9900,stroke:#232F3E,stroke-width:2px,color:#fff
+    style B fill:#FF9900,stroke:#232F3E,stroke-width:2px,color:#fff
+    style C fill:#FF9900,stroke:#232F3E,stroke-width:2px,color:#fff
+    style D fill:#FF9900,stroke:#232F3E,stroke-width:2px,color:#fff
+    style E fill:#146EB4,stroke:#232F3E,stroke-width:2px,color:#fff
 ```
 
 ## Prerequisites
