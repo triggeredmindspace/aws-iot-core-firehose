@@ -1,17 +1,16 @@
 resource "aws_iot_topic_rule" "rule" {
-   name        = "iot_kinesis_s3_alltopics"
-   description = "Example rule"
-   enabled     = true
-   sql        = "*"
-   sql_version = "2016-03-23"
+  name        = "iot_kinesis_s3_alltopics"
+  description = "Route all MQTT topic messages to Kinesis Firehose for S3 storage"
+  enabled     = true
+  sql         = "SELECT * FROM '$aws/rules/#'"
+  sql_version = "2016-03-23"
 
-   firehose {
-     delivery_stream_name = "mqtt-kinesis-firehose-stream-s3"
-     role_arn             = aws_iam_role.iot.arn
-     separator            = "\n"
-    # role_arn       = aws_iam_role.role.arn
-   }
- }
+  firehose {
+    delivery_stream_name = "mqtt-kinesis-firehose-stream-s3"
+    role_arn             = aws_iam_role.iot.arn
+    separator            = "\n"
+  }
+}
 
 resource "aws_iam_role" "iot" {
   name = "iot_topic_firehose_analytics_role"
@@ -34,7 +33,7 @@ EOF
 
 resource "aws_iam_role_policy" "iot_firehose" {
   name = "iot-firehose-policy"
-  role = "${aws_iam_role.iot.id}"
+  role = aws_iam_role.iot.id
 
   policy = <<EOF
 {
@@ -43,7 +42,8 @@ resource "aws_iam_role_policy" "iot_firehose" {
     {
       "Effect": "Allow",
       "Action": [
-        "firehose:*"
+        "firehose:PutRecord",
+        "firehose:PutRecordBatch"
       ],
       "Resource": [
         "${aws_kinesis_firehose_delivery_stream.alltopics_stream.arn}"
@@ -53,4 +53,3 @@ resource "aws_iam_role_policy" "iot_firehose" {
 }
 EOF
 }
-
